@@ -78,6 +78,14 @@ export default class Video extends Component {
     return await NativeModules.VideoManager.save(options, findNodeHandle(this._root));
   }
 
+  play = () => {
+    this.setNativeProps({ paused: false });
+  }
+
+  pause = () => {
+    this.setNativeProps({ paused: true });
+  }
+
   restoreUserInterfaceForPictureInPictureStopCompleted = (restored) => {
     this.setNativeProps({ restoreUserInterfaceForPIPStopCompletionHandler: restored });
   };
