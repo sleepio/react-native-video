@@ -351,6 +351,8 @@ var styles = StyleSheet.create({
 * [save](#save)
 * [restoreUserInterfaceForPictureInPictureStop](#restoreuserinterfaceforpictureinpicturestop)
 * [seek](#seek)
+* [play](#play)
+* [pause](#pause)
 
 ### Configurable props
 
@@ -1204,6 +1206,34 @@ this.player.seek(200); // Seek to 3 minutes, 20 seconds
 ```
 
 Platforms: all
+
+#### play()
+`play()`
+
+Calls play
+
+play can only be called after the `onLoad` event has fired. Once completed, the [onSeek](#onseek) event will be called.
+
+Example:
+```
+this.player.play();
+```
+
+Platforms: iOS, Android
+
+#### pause()
+`pause()`
+
+Calls pause
+
+pause can only be called after the `onLoad` event has fired. Once completed, the [onSeek](#onseek) event will be called.
+
+Example:
+```
+this.player.pause();
+```
+
+Platforms: iOS, Android
 
 ##### Exact seek
 
