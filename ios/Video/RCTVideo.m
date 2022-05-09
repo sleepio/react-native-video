@@ -383,6 +383,7 @@ static int const RCTVideoUnset = -1;
       }
       
       self->_player = [AVPlayer playerWithPlayerItem:self->_playerItem];
+      [self applyModifiers];
       self->_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
       
       [self->_player addObserver:self forKeyPath:playbackRate options:0 context:nil];
@@ -718,7 +719,10 @@ static int const RCTVideoUnset = -1;
     }
   } else if (object == _player) {
     if([keyPath isEqualToString:playbackRate]) {
-      if(self.onPlaybackRateChange) {
+      if (_player.rate > 0 && _rate > 0 && _player.rate != _rate) {
+        // Playback is resuming, apply rate modifer.
+        [_player setRate:_rate];
+      } else if(self.onPlaybackRateChange) {
         self.onPlaybackRateChange(@{@"playbackRate": [NSNumber numberWithFloat:_player.rate],
                                     @"target": self.reactTag});
       }
@@ -904,7 +908,7 @@ static int const RCTVideoUnset = -1;
 }
 
 - (void)setupPipController {
-  if (!_pipController && _playerLayer && [AVPictureInPictureController isPictureInPictureSupported]) {
+  if (!_pipController && _playerLayer && [AVPictureInPictureController isPictureInPictureSupported] && _pictureInPicture) {
     // Create new controller passing reference to the AVPlayerLayer
     _pipController = [[AVPictureInPictureController alloc] initWithPlayerLayer:_playerLayer];
     _pipController.delegate = self;
@@ -1061,8 +1065,8 @@ static int const RCTVideoUnset = -1;
   [self setSelectedTextTrack:_selectedTextTrack];
   [self setResizeMode:_resizeMode];
   [self setRepeat:_repeat];
-  [self setPaused:_paused];
   [self setControls:_controls];
+  [self setPaused:_paused];
   [self setAllowsExternalPlayback:_allowsExternalPlayback];
 }
 
@@ -1134,12 +1138,20 @@ static int const RCTVideoUnset = -1;
       }
     }
   } else { // default. invalid type or "system"
-    [_player.currentItem selectMediaOptionAutomaticallyInMediaSelectionGroup:group];
-    return;
+    #if TARGET_OS_TV
+    // Do noting. Fix for tvOS native audio menu language selector
+    #else
+      [_player.currentItem selectMediaOptionAutomaticallyInMediaSelectionGroup:group];
+      return;
+    #endif
   }
-  
-  // If a match isn't found, option will be nil and text tracks will be disabled
-  [_player.currentItem selectMediaOption:mediaOption inMediaSelectionGroup:group];
+
+    #if TARGET_OS_TV
+    // Do noting. Fix for tvOS native audio menu language selector
+    #else
+       // If a match isn't found, option will be nil and text tracks will be disabled
+       [_player.currentItem selectMediaOption:mediaOption inMediaSelectionGroup:group];
+    #endif
 }
 
 - (void)setSelectedAudioTrack:(NSDictionary *)selectedAudioTrack {
