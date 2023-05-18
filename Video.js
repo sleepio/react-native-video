@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, requireNativeComponent, NativeModules, UIManager, View, ViewPropTypes, Image, Platform, findNodeHandle } from 'react-native';
+import { StyleSheet, requireNativeComponent, NativeModules, UIManager, View, Image, Platform, findNodeHandle } from 'react-native';
+import { ViewPropTypes, ImagePropTypes } from 'deprecated-react-native-prop-types';
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 import TextTrackType from './TextTrackType';
 import FilterType from './FilterType';
@@ -13,7 +14,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export { TextTrackType, FilterType, DRMType };
+const { VideoDecoderProperties } = NativeModules
+export { TextTrackType, FilterType, DRMType, VideoDecoderProperties }
 
 export default class Video extends Component {
 
@@ -78,6 +80,13 @@ export default class Video extends Component {
   save = async (options?) => {
     return await NativeModules.VideoManager.save(options, findNodeHandle(this._root));
   }
+    play = () => {
+    this.setNativeProps({ paused: false });
+  }
+
+  pause = () => {
+    this.setNativeProps({ paused: true });
+  }
 
   play = () => {
     this.setNativeProps({ paused: false });
@@ -107,6 +116,12 @@ export default class Video extends Component {
     }
   };
 
+  _onPlaybackStateChanged = (event) => {
+    if (this.props.onPlaybackStateChanged) {
+      this.props.onPlaybackStateChanged(event.nativeEvent);
+    }
+  };
+
   _onLoad = (event) => {
     // Need to hide poster here for windows as onReadyForDisplay is not implemented
     if (Platform.OS === 'windows') {
@@ -114,6 +129,24 @@ export default class Video extends Component {
     }
     if (this.props.onLoad) {
       this.props.onLoad(event.nativeEvent);
+    }
+  };
+
+  _onAudioTracks = (event) => {
+    if (this.props.onAudioTracks) {
+      this.props.onAudioTracks(event.nativeEvent);
+    }
+  };
+
+  _onTextTracks = (event) => {
+    if (this.props.onTextTracks) {
+      this.props.onTextTracks(event.nativeEvent);
+    }
+  };
+
+  _onVideoTracks = (event) => {
+    if (this.props.onVideoTracks) {
+      this.props.onVideoTracks(event.nativeEvent);
     }
   };
 
@@ -261,6 +294,13 @@ export default class Video extends Component {
       }
     }
   }
+
+  _onReceiveAdEvent = (event) => {
+    if (this.props.onReceiveAdEvent) {
+      this.props.onReceiveAdEvent(event.nativeEvent);
+    }
+  };
+
   getViewManagerConfig = viewManagerName => {
     if (!UIManager.getViewManagerConfig) {
       return UIManager[viewManagerName];
@@ -276,16 +316,20 @@ export default class Video extends Component {
     let uri = source.uri || '';
     if (uri && uri.match(/^\//)) {
       uri = `file://${uri}`;
-    } else if (uri === '') {
-      return null;
     }
 
     if (!uri) {
-      console.warn('Trying to load empty source.');
+      console.log('Trying to load empty source.');
     }
 
-    const isNetwork = !!(uri && uri.match(/^https?:/));
-    const isAsset = !!(uri && uri.match(/^(assets-library|ipod-library|file|content|ms-appx|ms-appdata):/));
+    const isNetwork = !!(uri && uri.match(/^https?:/i));
+    const isAsset = !!(uri && uri.match(/^(assets-library|ph|ipod-library|file|content|ms-appx|ms-appdata):/i));
+
+    if ((uri || uri === '') && !isNetwork && !isAsset) {
+      if (this.props.onError) {
+        this.props.onError({error: {errorString: 'invalid url, player will stop', errorCode: 'INVALID_URL'}});
+      }
+    }
 
     let nativeResizeMode;
     const RCTVideoInstance = this.getViewManagerConfig('RCTVideo');
@@ -313,9 +357,15 @@ export default class Video extends Component {
         mainVer: source.mainVer || 0,
         patchVer: source.patchVer || 0,
         requestHeaders: source.headers ? this.stringsOnlyObject(source.headers) : {},
+        startTime: source.startTime || 0,
+        endTime: source.endTime
       },
       onVideoLoadStart: this._onLoadStart,
+      onVideoPlaybackStateChanged: this._onPlaybackStateChanged,
       onVideoLoad: this._onLoad,
+      onAudioTracks: this._onAudioTracks,
+      onTextTracks: this._onTextTracks,
+      onVideoTracks: this._onVideoTracks,
       onVideoError: this._onError,
       onVideoProgress: this._onProgress,
       onVideoSeek: this._onSeek,
@@ -338,6 +388,7 @@ export default class Video extends Component {
       onGetLicense: nativeProps.drm && nativeProps.drm.getLicense && this._onGetLicense,
       onPictureInPictureStatusChanged: this._onPictureInPictureStatusChanged,
       onRestoreUserInterfaceForPictureInPictureStop: this._onRestoreUserInterfaceForPictureInPictureStop,
+      onReceiveAdEvent: this._onReceiveAdEvent,
     });
 
     const posterStyle = {
@@ -421,11 +472,12 @@ Video.propTypes = {
     certificateUrl: PropTypes.string,
     getLicense: PropTypes.func,
   }),
+  localSourceEncryptionKeyScheme: PropTypes.string,
   minLoadRetryCount: PropTypes.number,
   maxBitRate: PropTypes.number,
   resizeMode: PropTypes.string,
   poster: PropTypes.string,
-  posterResizeMode: Image.propTypes.resizeMode,
+  posterResizeMode: ImagePropTypes.resizeMode,
   repeat: PropTypes.bool,
   automaticallyWaitsToMinimizeStalling: PropTypes.bool,
   allowsExternalPlayback: PropTypes.bool,
@@ -470,8 +522,8 @@ Video.propTypes = {
     maxBufferMs: PropTypes.number,
     bufferForPlaybackMs: PropTypes.number,
     bufferForPlaybackAfterRebufferMs: PropTypes.number,
+    maxHeapAllocationPercent: PropTypes.number,
   }),
-  stereoPan: PropTypes.number,
   rate: PropTypes.number,
   pictureInPicture: PropTypes.bool,
   playInBackground: PropTypes.bool,
@@ -479,17 +531,31 @@ Video.propTypes = {
   playWhenInactive: PropTypes.bool,
   ignoreSilentSwitch: PropTypes.oneOf(['ignore', 'obey']),
   reportBandwidth: PropTypes.bool,
+  contentStartTime: PropTypes.number,
   disableFocus: PropTypes.bool,
+  focusable: PropTypes.bool,
+  disableBuffering: PropTypes.bool,
   controls: PropTypes.bool,
   audioOnly: PropTypes.bool,
-  currentTime: PropTypes.number,
   fullscreenAutorotate: PropTypes.bool,
   fullscreenOrientation: PropTypes.oneOf(['all', 'landscape', 'portrait']),
   progressUpdateInterval: PropTypes.number,
+  subtitleStyle: PropTypes.shape({
+    paddingTop: PropTypes.number,
+    paddingBottom: PropTypes.number,
+    paddingLeft: PropTypes.number,
+    paddingRight: PropTypes.number,
+    fontSize: PropTypes.number,
+  }),
   useTextureView: PropTypes.bool,
+  useSecureView: PropTypes.bool,
   hideShutterView: PropTypes.bool,
   onLoadStart: PropTypes.func,
+  onPlaybackStateChanged: PropTypes.func,
   onLoad: PropTypes.func,
+  onAudioTracks: PropTypes.func,
+  onTextTracks: PropTypes.func,
+  onVideoTracks: PropTypes.func,
   onBuffer: PropTypes.func,
   onError: PropTypes.func,
   onProgress: PropTypes.func,
@@ -507,15 +573,11 @@ Video.propTypes = {
   onAudioFocusChanged: PropTypes.func,
   onAudioBecomingNoisy: PropTypes.func,
   onPictureInPictureStatusChanged: PropTypes.func,
-  needsToRestoreUserInterfaceForPictureInPictureStop: PropTypes.func,
   onExternalPlaybackChange: PropTypes.func,
+  adTagUrl: PropTypes.string,
+  onReceiveAdEvent: PropTypes.func,
 
   /* Required by react-native */
-  scaleX: PropTypes.number,
-  scaleY: PropTypes.number,
-  translateX: PropTypes.number,
-  translateY: PropTypes.number,
-  rotation: PropTypes.number,
   ...ViewPropTypes,
 };
 
