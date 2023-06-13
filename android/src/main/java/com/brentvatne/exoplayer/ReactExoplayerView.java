@@ -1497,9 +1497,9 @@ class ReactExoplayerView extends FrameLayout implements
                     DataSourceUtil.getDefaultDataSourceFactory(this.themedReactContext, bandwidthMeter,
                             this.requestHeaders);
 
-            if (!isSourceEqual) {
-                reloadSource();
-            }
+            // if (!isSourceEqual) {
+            //     reloadSource();
+            // }
         }
     }
 
