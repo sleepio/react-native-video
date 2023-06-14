@@ -1,0 +1,42 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - react-native-windows > xml-parser > debug:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > debug:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > metro-inspector-proxy > debug:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > jest-haste-map > anymatch > micromatch > braces > snapdragon > debug:
+        patched: '2023-05-29T17:32:46.862Z'
+  SNYK-JS-LODASH-567746:
+    - react-native > @react-native-community/cli > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > @react-native-community/cli-tools > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > async > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > inquirer > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > @babel/core > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > @babel/core > @babel/generator > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > babel-preset-fbjs > @babel/plugin-transform-block-scoping > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > metro-babel-register > @babel/register > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > @babel/core > @babel/helpers > @babel/traverse > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > babel-preset-fbjs > @babel/plugin-transform-modules-commonjs > @babel/helper-module-transforms > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > metro-react-native-babel-preset > @babel/plugin-transform-sticky-regex > @babel/helper-regex > lodash:
+        patched: '2023-05-29T17:32:46.862Z'
+  'npm:ms:20170412':
+    - react-native-windows > xml-parser > debug > ms:
+        patched: '2023-05-29T17:32:46.862Z'
+    - react-native > @react-native-community/cli > metro > debug > ms:
+        patched: '2023-05-29T17:32:46.862Z'
