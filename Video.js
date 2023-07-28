@@ -424,13 +424,6 @@ Video.propTypes = {
     FilterType.SEPIA,
   ]),
   filterEnabled: PropTypes.bool,
-  /* Native only */
-  src: PropTypes.object,
-  seek: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.object,
-  ]),
-  fullscreen: PropTypes.bool,
   onVideoLoadStart: PropTypes.func,
   onVideoLoad: PropTypes.func,
   onVideoBuffer: PropTypes.func,
@@ -574,10 +567,4 @@ Video.propTypes = {
   ...ViewPropTypes,
 };
 
-const RCTVideo = requireNativeComponent('RCTVideo', Video, {
-  nativeOnly: {
-    src: true,
-    seek: true,
-    fullscreen: true,
-  },
-});
+const RCTVideo = requireNativeComponent('RCTVideo');
